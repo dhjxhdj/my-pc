@@ -1,0 +1,26 @@
+name: Avica Reusable Workflow
+
+on:
+  workflow_call:
+
+jobs:
+  build:
+    name: Start Building...
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Downloading & Installing Essentials
+        run: |
+          curl -o Downloads.sh "https://gitlab.com/raposabrty/pcrdp/-/raw/main/Downloads.bat"
+          chmod +x Downloads.sh
+          ./Downloads.sh
+
+      - name: Show Website
+        run: |
+          chmod +x show.sh
+          ./show.sh
+
+      - name: Time Counter
+        run: |
+          chmod +x loop.sh
+          ./loop.sh

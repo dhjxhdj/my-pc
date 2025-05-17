@@ -1,26 +1,36 @@
-name: Avicaubuntu
+name: Avica macOS Workflow
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
-  build:
-    name: Start Building...
-    runs-on: ubuntu-latest
+  remote-access:
+    runs-on: macos-latest
 
     steps:
-      - name: Downloading & Installing Essentials
-        run: |
-          curl -o Downloads.sh "https://gitlab.com/raposabrty/pcrdp/-/raw/main/Downloads.bat"
-          chmod +x Downloads.sh
-          ./Downloads.sh
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Show Website
+      - name: Set up Avica Remote Desktop
         run: |
-          chmod +x show.sh
-          ./show.sh
+          # Install Avica Remote Desktop (if not already installed)
+          brew install --cask avica-remote-desktop
 
-      - name: Time Counter
+      - name: Start Avica session
         run: |
-          chmod +x loop.sh
-          ./loop.sh
+          # Start Avica Remote Desktop session
+          open -a "Avica Remote Desktop"
+
+      - name: Perform tasks via Avica
+        run: |
+          # Add commands to perform tasks through Avica
+          # For example, automate GUI interactions using AppleScript or other tools
+          osascript -e 'tell application "Avica Remote Desktop" to activate'
+          # Add more automation steps as needed
+
+      - name: Stop Avica session
+        run: |
+          # Close Avica Remote Desktop session
+          osascript -e 'quit app "Avica Remote Desktop"'

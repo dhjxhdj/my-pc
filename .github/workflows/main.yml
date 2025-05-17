@@ -1,36 +1,56 @@
-name: Avica macOS Workflow
+name: Setup VNC Server
 
-on:
-  push:
-    branches:
-      - main
+on: [push, workflow_dispatch]
 
 jobs:
-  remote-access:
-    runs-on: macos-latest
+  setup-vnc:
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      - name: Set up Avica Remote Desktop
-        run: |
-          # Install Avica Remote Desktop (if not already installed)
-          brew install --cask avica-remote-desktop
+    - name: Install VNC and XFCE
+      run: |
+        sudo apt update
+        sudo apt install -y tigervnc-standalone-server tigervnc-common xfce4 xfce4-goodies
 
-      - name: Start Avica session
-        run: |
-          # Start Avica Remote Desktop session
-          open -a "Avica Remote Desktop"
+    - name: Set VNC password
+      run: |
+        mkdir -p ~/.vnc
+        echo "yourpassword" | vncpasswd -f > ~/.vnc/passwd
+        chmod 600 ~/.vnc/passwd
 
-      - name: Perform tasks via Avica
-        run: |
-          # Add commands to perform tasks through Avica
-          # For example, automate GUI interactions using AppleScript or other tools
-          osascript -e 'tell application "Avica Remote Desktop" to activate'
-          # Add more automation steps as needed
+    - name: Create xstartup file
+      run: |
+        cat > ~/.vnc/xstartup <<EOF
+        #!/bin/sh
+        unset SESSION_MANAGER
+        unset DBUS_SESSION_BUS_ADDRESS
+        exec startxfce4 &
+        EOF
+        chmod +x ~/.vnc/xstartup
 
-      - name: Stop Avica session
-        run: |
-          # Close Avica Remote Desktop session
-          osascript -e 'quit app "Avica Remote Desktop"'
+    - name: Start VNC server
+      run: |
+        vncserver :1 -geometry 1280x800 -depth 24
+        echo "VNC server started on display :1"
+
+    - name: Get the server's IP address and port
+      run: |
+        # Retrieve the IP address (this is the internal IP for the GitHub runner)
+        SERVER_IP=$(hostname -I | awk '{print $1}')
+        
+        # VNC port is typically 5901 for display :1
+        VNC_PORT=5901
+        
+        # Output the IP and port to GitHub Actions logs
+        echo "VNC server is running at $SERVER_IP:$VNC_PORT"
+        echo "VNC password is 'yourpassword'"  # Be cautious here for security reasons
+        echo "::set-output name=ip::$SERVER_IP"
+        echo "::set-output name=port::$VNC_PORT"
+
+    - name: Display active ports
+      run: |
+        # Check if the VNC server is running and output the open ports
+        netstat -tuln | grep 5901
